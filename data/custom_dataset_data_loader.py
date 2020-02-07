@@ -9,7 +9,7 @@ class CustomDatasetDataLoader(BaseDataLoader):
 
     def initialize(self, opt):
         BaseDataLoader.initialize(self, opt)
-        self.dataset = data.create_dataset(opt)
+        self.dataset = data.create_dataset(opt) # in __init__.py
         if dist.is_initialized():
             sampler = torch.utils.data.distributed.DistributedSampler(self.dataset)
         else:

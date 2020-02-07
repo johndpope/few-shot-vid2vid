@@ -21,7 +21,8 @@ def train():
     ### setup dataset
     data_loader = CreateDataLoader(opt)
     dataset = data_loader.load_data()
-    pose = 'pose' in opt.dataset_mode
+    pose  = 'pose' in opt.dataset_mode
+    cloth = 'cloth'in opt.dataset_mode
 
     ### setup trainer    
     trainer = Trainer(opt, data_loader) 
@@ -33,7 +34,7 @@ def train():
     for epoch in range(trainer.start_epoch, opt.niter + opt.niter_decay + 1):
         trainer.start_of_epoch(epoch, model, data_loader)
         n_frames_total, n_frames_load = data_loader.dataset.n_frames_total, opt.n_frames_per_gpu
-        for idx, data in enumerate(dataset, start=trainer.epoch_iter):
+        for idx, data in enumerate(dataset, start=trainer.epoch_iter):#error
             trainer.start_of_iter()            
 
             if not opt.no_flow_gt: 
@@ -58,6 +59,7 @@ def train():
             if trainer.end_of_iter(loss_dict, generated + data_list + data_ref_list, model):
                 break        
         trainer.end_of_epoch(model)
+    
 
 def get_data_t(data, n_frames_load, t):
     if data is None: return None
