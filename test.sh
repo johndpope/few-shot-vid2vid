@@ -1,4 +1,0 @@
-python \
--m \
-pip \
-list \
