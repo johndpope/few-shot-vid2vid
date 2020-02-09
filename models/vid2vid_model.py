@@ -40,7 +40,7 @@ class Vid2VidModel(BaseModel):
         
         if mode == 'generator':            
             g_loss, generated, prev = self.forward_generator(tgt_label, tgt_image, ref_labels, ref_images, 
-                prev_label, prev_image, flow_gt, conf_gt)
+                prev_label, prev_image, flow_gt, conf_gt) # error
             return g_loss, generated if save_images else [], prev
 
         elif mode == 'discriminator':            

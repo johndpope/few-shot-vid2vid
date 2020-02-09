@@ -1,8 +1,8 @@
 python train.py --name cloth \
 --dataroot  ./datasets/cloth \
 --dataset_mode fewshot_cloth \
---batchSize    30      \
---gpu_ids      7 \
+--batchSize    2       \
+--gpu_ids      4       \
 --adaptive_spade       \
 --warp_ref             \
 --spade_combine        \

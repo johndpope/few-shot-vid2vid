@@ -27,6 +27,9 @@ class FewshotClothDataset(BaseDataset):
         parser.add_argument('--basic_point_only', action='store_true', help='only use basic joints without face and hand')            
 
         ### for inference        
+        parser.add_argument('--seq_img_path'    , type=str, default='datasets/cloth/test_images/01/', help='path to the driving sequence')
+        parser.add_argument('--seq_lbl_path'    , type=str, default='datasets/cloth/test_labels/01/', help='path to the driving sequence')
+        
         parser.add_argument('--seq_path'    , type=str, default='datasets/cloth/test_images/01/', help='path to the driving sequence')        
         parser.add_argument('--ref_img_path', type=str, default='datasets/cloth/test_images/02/', help='path to the reference image')
         parser.add_argument('--ref_img_id'  , type=str, default='0', help='indices of reference frames')   
@@ -40,18 +43,21 @@ class FewshotClothDataset(BaseDataset):
         if opt.isTrain:            
             self.img_paths = sorted(make_grouped_dataset(path.join(root, 'train_images')))
             self.lbl_paths = sorted(make_grouped_dataset(path.join(root, 'train_labels')))### my changed
-            #self.op_paths  = sorted(make_grouped_dataset(path.join(root, 'train_openpose')))
-            #self.dp_paths  = sorted(make_grouped_dataset(path.join(root, 'train_densepose')))
+            '''
+            self.op_paths  = sorted(make_grouped_dataset(path.join(root, 'train_openpose')))
+            self.dp_paths  = sorted(make_grouped_dataset(path.join(root, 'train_densepose')))'''
         else:# isTest
-            self.img_paths = sorted(make_dataset(opt.seq_path))
-            self.lbl_paths = sorted(make_dataset(opt.seq_path.replace('images', 'labels')))### my changed
-            #self.op_paths  = sorted(make_dataset(opt.seq_path.replace('images', 'openpose')))
-            #self.dp_paths  = sorted(make_dataset(opt.seq_path.replace('images', 'densepose')))
-
+            self.img_paths = sorted(make_dataset(opt.seq_img_path))
+            self.lbl_paths = sorted(make_dataset(opt.seq_lbl_path))### my changed
+            '''
+            self.op_paths  = sorted(make_dataset(opt.seq_path.replace('images', 'openpose')))
+            self.dp_paths  = sorted(make_dataset(opt.seq_path.replace('images', 'densepose')))'''
+            
             self.ref_img_paths = sorted(make_dataset(opt.ref_img_path))
             self.ref_lbl_paths = sorted(make_dataset(opt.ref_img_path.replace('images', 'labels')))### my changed
-            #self.ref_op_paths  = sorted(make_dataset(opt.ref_img_path.replace('images', 'openpose')))
-            #self.ref_dp_paths  = sorted(make_dataset(opt.ref_img_path.replace('images', 'densepose')))
+            '''
+            self.ref_op_paths  = sorted(make_dataset(opt.ref_img_path.replace('images', 'openpose')))
+            self.ref_dp_paths  = sorted(make_dataset(opt.ref_img_path.replace('images', 'densepose')))'''
 
         self.n_of_seqs = len(self.img_paths)        # number of sequences to train 
         if opt.isTrain: print('%d sequences' % self.n_of_seqs)        
@@ -71,8 +77,7 @@ class FewshotClothDataset(BaseDataset):
             #dp_paths = self.dp_paths[seq_idx]
             #ref_img_paths, ref_op_paths, ref_dp_paths = img_paths, op_paths, dp_paths
         else:            
-            img_paths = self.img_paths[seq_idx]
-            lbl_paths = self.lbl_paths[seq_idx]
+            img_paths, lbl_paths = self.img_paths, self.lbl_paths
             ref_img_paths, ref_lbl_paths = self.ref_img_paths, self.ref_lbl_paths
             '''
             img_paths, op_paths, dp_paths = self.img_paths, self.op_paths, self.dp_paths
@@ -135,7 +140,14 @@ class FewshotClothDataset(BaseDataset):
         img_path = img_paths[i]
         lbl_path = lbl_paths[i]
         # label
-        Li = self.get_image(lbl_path, size, params, crop_coords, input_type='lbl') # error
+        #Li = self.get_image(lbl_path, size, params, crop_coords, input_type='lbl') # error
+        Li = torch.cat([self.get_image(lbl_path, size, params, crop_coords, input_type='lbl'),
+                        self.get_image(lbl_path, size, params, crop_coords, input_type='lbl')])
+        ### Now changed the 6-channel(=RGB:OpenPose + RGB:DencePose) to 3-channels(=labels:RGB).
+        ### There is a need to change the setting of the convolution 
+        ### You can see it
+        ### ``` RuntimeError: Given groups=1, weight of size 32 6 3 3, 
+        ###     expected input[8, 3, 512, 256] to have 6 channels, but got 3 channels instead ```
         ''' 
         op_path = op_paths[i]
         dp_path = dp_paths[i]
